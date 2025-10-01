@@ -1,19 +1,21 @@
-# app.py
 import streamlit as st
 import joblib
 import numpy as np
 
+st.set_page_config(page_title="Smart Home Energy Predictor", layout="centered")
 st.title("Smart Home Energy Consumption Prediction")
 
 # -----------------------------
 # Load compressed model and encoders
 # -----------------------------
-# Make sure these files exist in your project folder:
-# energy_model.joblib, scaler.joblib, le_appliance.joblib, le_season.joblib
-model = joblib.load("energy_model.joblib")
-scaler = joblib.load("scaler.joblib")
-le_appliance = joblib.load("le_appliance.joblib")
-le_season = joblib.load("le_season.joblib")
+try:
+    model = joblib.load("energy_model.joblib")
+    scaler = joblib.load("scaler.joblib")
+    le_appliance = joblib.load("le_appliance.joblib")
+    le_season = joblib.load("le_season.joblib")
+except Exception as e:
+    st.error(f"Error loading model or encoders: {e}")
+    st.stop()
 
 # -----------------------------
 # User inputs
@@ -33,9 +35,8 @@ appliance_enc = le_appliance.transform([appliance])[0]
 season_enc = le_season.transform([season])[0]
 
 # -----------------------------
-# Create feature array
+# Create feature array (order must match training)
 # -----------------------------
-# Make sure the order matches training: [Appliance, Season, Temp, Household, Hour, Month, Day]
 features = [appliance_enc, season_enc, temperature, household_size, hour, month, day]
 features_array = np.array(features).reshape(1, -1)
 
@@ -48,10 +49,13 @@ features_scaled = scaler.transform(features_array)
 # Predict
 # -----------------------------
 if st.button("Predict Energy Consumption"):
-    prediction = model.predict(features_scaled)[0]
-    st.success(f"Predicted Energy Consumption: {prediction:.2f} kWh")
+    try:
+        prediction = model.predict(features_scaled)[0]
+        st.success(f"Predicted Energy Consumption: {prediction:.2f} kWh")
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
 
-    # Optional: show a summary of the input
+    # Optional: show input summary
     st.subheader("Input Summary")
     st.write({
         "Appliance": appliance,
