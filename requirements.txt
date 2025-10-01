@@ -1,6 +1,7 @@
-joblib
-matplotlib
+streamlit
+scikit-learn==1.2.2
 numpy
 pandas
-scikit-learn
+joblib
+matplotlib
 seaborn
